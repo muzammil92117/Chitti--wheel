@@ -8,104 +8,180 @@
 *{box-sizing:border-box}body{margin:0;background:#10131a;color:#fff;font-family:Arial,sans-serif;min-height:100vh}
 .wrap{max-width:720px;margin:auto;padding:18px 14px 35px;text-align:center}
 h1{margin:4px 0 6px;font-size:28px}.sub{color:#aeb6c5;font-size:14px;line-height:1.45;margin-bottom:16px}
-.room,.manage,.results{background:#171c25;border:1px solid #2b3240;border-radius:12px;padding:12px;margin-bottom:12px;text-align:left}
-.room-title,.manage-title{font-weight:800;margin-bottom:8px}.room-row{display:flex;gap:7px;flex-wrap:wrap}.room-row input{flex:1;min-width:120px;padding:10px;border:1px solid #303746;border-radius:9px;background:#10131a;color:#fff}.room-row button{padding:10px 14px;border:0;border-radius:9px;font-weight:800}.room-status{font-size:12px;color:#aeb6c5;margin-top:7px}
-.players{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.player{display:flex;gap:6px}.player input{width:100%;padding:10px;border:1px solid #303746;border-radius:9px;background:#181d27;color:#fff;font-size:15px}.player button{width:38px;border:0;border-radius:9px;background:#292f3b;color:#fff;font-size:18px}.player button:disabled,.player input:disabled{opacity:.55}
-.manage-actions{display:flex;gap:8px}.manage-actions button{padding:10px 14px;border:0;border-radius:9px;font-weight:800}.add{background:#fff;color:#111}.remove-note{font-size:12px;color:#8f98a8;margin-top:7px}
-.stage{position:relative;width:min(92vw,600px);margin:12px auto}.stage canvas{display:block;width:100%;height:auto}.marker{position:absolute;left:50%;top:-1px;transform:translateX(-50%);width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-top:28px solid #fff;z-index:3;filter:drop-shadow(0 2px 4px #000)}
-button.main{margin-top:8px;width:min(92vw,420px);padding:14px 18px;border:0;border-radius:12px;background:#fff;color:#111;font-weight:800;font-size:17px}.status{min-height:28px;margin:12px 0;color:#dce2eb;font-weight:700}.winner{font-size:26px;font-weight:900;margin:5px 0 14px}
-.results{margin:12px auto;text-align:left;max-width:420px}.results h3{margin:0 0 8px}.results div{padding:5px 0;border-bottom:1px solid #262d39}.results div:last-child{border:0}.note{font-size:12px;color:#8f98a8;margin-top:12px}
+.players{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.player{display:flex;gap:6px}.player input{width:100%;padding:10px;border:1px solid #303746;border-radius:9px;background:#181d27;color:#fff;font-size:15px}
+.player button{width:38px;border:0;border-radius:9px;background:#292f3b;color:#fff;font-size:18px}
+.stage{position:relative;width:min(92vw,600px);margin:12px auto}.stage canvas{display:block;width:100%;height:auto}
+.marker{position:absolute;left:50%;top:-1px;transform:translateX(-50%);width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-top:28px solid #fff;z-index:3;filter:drop-shadow(0 2px 4px #000)}
+button.main{margin-top:8px;width:min(92vw,420px);padding:14px 18px;border:0;border-radius:12px;background:#fff;color:#111;font-weight:800;font-size:17px}
+.status{min-height:28px;margin:12px 0;color:#dce2eb;font-weight:700}.winner{font-size:26px;font-weight:900;margin:5px 0 14px}
+.results{margin:12px auto;text-align:left;max-width:420px;background:#171c25;border:1px solid #2b3240;border-radius:12px;padding:12px}
+.results h3{margin:0 0 8px}.results div{padding:5px 0;border-bottom:1px solid #262d39}.results div:last-child{border:0}
+.note{font-size:12px;color:#8f98a8;margin-top:12px}
 @media(max-width:480px){.players{grid-template-columns:1fr}.stage{width:96vw}h1{font-size:24px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-<div class="room"><div class="room-title">🌐 Real-time room</div><div class="room-row"><input id="roomCode" placeholder="Room code" maxlength="12"><button id="joinRoom">JOIN / CREATE</button></div><div id="roomStatus" class="room-status">Not connected</div></div>
 <h1>🎟️ Real Chitti Wheel</h1>
-<div class="sub">Before spinning, the names and colours keep changing live. Tap once to spin; while spinning, your first touch on the wheel freezes the exact wheel position at that moment.</div>
-<div class="manage"><div class="manage-title">👥 Players</div><div class="players" id="players"></div><div class="manage-actions"><button id="addPlayer" class="add">＋ ADD NAME</button></div><div class="remove-note">Change, add or delete names before a round starts. Keep at least 2 players.</div></div>
+<div class="sub">Before spinning, the names and colours keep changing live. Tap once to spin; while spinning, touch the wheel to stop it instantly at that exact moment.</div>
+<div class="players" id="players"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button id="addPlayer" style="padding:10px 14px;border:0;border-radius:9px;font-weight:800">＋ ADD NAME</button><button id="resetGame" style="padding:10px 14px;border:0;border-radius:9px;font-weight:800;background:#e8eaed;color:#111">↻ RESET GAME</button></div>
 <div class="stage"><canvas id="wheel" width="700" height="700"></canvas><div class="marker"></div></div>
-<div id="status" class="status">Waiting — live mapping is changing…</div><div id="winner" class="winner"></div>
+<div id="status" class="status">Waiting — live mapping is changing…</div>
+<div id="winner" class="winner"></div>
 <button id="action" class="main">TAP TO SPIN</button>
 <div class="results"><h3>Results</h3><div id="resultsList">No confirmed winners yet.</div></div>
-<div class="note">The winner is removed only when you press SET NEW SPIN.</div>
+<div class="note">The winner is removed only after you press SET NEW SPIN.</div>
 </div>
 <script>
 const canvas=document.getElementById('wheel'),ctx=canvas.getContext('2d');
 const action=document.getElementById('action'),statusEl=document.getElementById('status'),winnerEl=document.getElementById('winner'),resultsList=document.getElementById('resultsList');
-let players=['Ayaan','Hamza','Zaid','Fahad','Bilal','Usman'];
-let wheelNames=[...players];
-let angle=0,velocity=0,spinning=false,raf=0,lastT=0;
-let idleTimer=null,pendingWinner=null,round=0,results=[],mode='spin';
-let socket=null,roomId=null,applyingRemote=false;
-const COLORS=['#e91e63','#f2ad2f','#65e52f','#2fd9a0','#3478df','#a62fdf','#ff7043','#26c6da','#ab47bc','#8bc34a','#ef5350','#42a5f5','#66bb6a','#ffa726','#26a69a','#7e57c2','#ec407a','#8d6e63','#78909c','#d4e157'];
-function col(i){return COLORS[i%COLORS.length]}
-function syncStatus(t){document.getElementById('roomStatus').textContent=t}
-function payload(){return {players,wheelNames,angle,spinning,velocity,pendingWinner,round,results,mode}}
-function send(type,data={}){if(!socket||socket.readyState!==WebSocket.OPEN||applyingRemote||!roomId)return;socket.send(JSON.stringify({type,room:roomId,...data}))}
-function connectRoom(){
- roomId=(document.getElementById('roomCode').value||'').trim().toUpperCase().replace(/[^A-Z0-9-]/g,'');if(!roomId){alert('Enter a room code.');return}
- const proto=location.protocol==='https:'?'wss':'ws';try{if(socket)socket.close()}catch{} socket=new WebSocket(`${proto}://${location.host}`);
- socket.onopen=()=>{syncStatus('Connected — room '+roomId);socket.send(JSON.stringify({type:'join',room:roomId}))};socket.onclose=()=>syncStatus('Disconnected');socket.onerror=()=>syncStatus('Connection error');
- socket.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch{return}; if(m.type==='state'){apply(m);return} if(m.type==='action'){apply(m);if(m.action==='start'){beginSpin(true)}else if(m.action==='stop'){finishRemoteStop()}else if(m.action==='new'){showReady()}else if(m.action==='players'){renderInputs();draw()}}};
+let active=['Ayaan','Hamza','Zaid','Fahad','Bilal','Usman'];
+let wheelNames=[...active];
+let angle=0, velocity=0, spinning=false, raf=0, lastT=0, spinStartAngle=0, spinStartTime=0, stopLocked=false;
+let idleTimer=null, idlePhase=0, pendingWinner=null, round=0, results=[];
+
+function renderInputs(){
+ const box=document.getElementById('players');box.innerHTML='';
+ active.forEach((name,i)=>{
+  const row=document.createElement('div');row.className='player';
+  const inp=document.createElement('input');inp.value=name;
+  inp.oninput=()=>{if(spinning||pendingWinner)return;active[i]=inp.value||('Player '+(i+1));wheelNames=[...active];draw();};
+  const btn=document.createElement('button');btn.textContent='×';btn.onclick=()=>{
+   if(spinning||pendingWinner){alert('Finish this round first.');return}
+   if(active.length>2){active.splice(i,1);wheelNames=[...active];renderInputs();draw();}
+   else alert('Keep at least 2 players.');
+  };
+  row.append(inp,btn);box.append(row);
+ });
 }
-function apply(m){applyingRemote=true;if(Array.isArray(m.players)&&m.players.length>=1)players=m.players;if(Array.isArray(m.wheelNames)&&m.wheelNames.length>=1)wheelNames=m.wheelNames;else wheelNames=[...players];angle=Number(m.angle)||0;velocity=Number(m.velocity)||0;spinning=!!m.spinning;pendingWinner=m.pendingWinner||null;round=Number(m.round)||0;results=Array.isArray(m.results)?m.results:results;mode=m.mode||((pendingWinner)?'new':'spin');renderInputs();renderResults();draw();applyingRemote=false;if(spinning&&!raf){lastT=performance.now();raf=requestAnimationFrame(tick)}if(!spinning&&raf){cancelAnimationFrame(raf);raf=0}}
-function beginSpin(remote){stopIdle();if(players.length<2)return;spinning=true;pendingWinner=null;mode='stop';winnerEl.textContent='';statusEl.textContent='Spinning — touch the wheel to stop!';action.textContent='TOUCH WHEEL TO STOP';action.disabled=false;velocity=remote?(Number(velocity)||20):(16+Math.random()*7);lastT=performance.now();draw();if(!remote)send('start',payload());if(!raf)raf=requestAnimationFrame(tick)}
-function startOrNew(){
- if(mode==='new'&&pendingWinner){confirmWinnerAndNewSpin();return}
- if(mode==='spin'){beginSpin(false);return}
+function resetGame(){
+ if(spinning){
+  if(!confirm('Wheel is spinning. Reset game?'))return;
+  spinning=false;if(raf){cancelAnimationFrame(raf);raf=0}velocity=0;
+ }
+ stopIdle();
+ active=['Ayaan','Hamza','Zaid','Fahad','Bilal','Usman'];wheelNames=[...active];
+ angle=0;pendingWinner=null;round=0;results=[];winnerEl.textContent='';
+ action.disabled=false;action.textContent='TAP TO SPIN';
+ statusEl.textContent='Waiting — live mapping is changing…';
+ renderInputs();renderResults();draw();startIdle();
 }
-function confirmWinnerAndNewSpin(){
- if(!pendingWinner)return;
- const w=pendingWinner.winner;results.push(w);round++;players=players.filter(x=>x!==w);pendingWinner=null;winnerEl.textContent='';
- if(players.length===1){wheelNames=[...players];spinning=false;mode='complete';statusEl.textContent='Final remaining player:';winnerEl.textContent=players[0];action.disabled=true;action.textContent='GAME COMPLETE';renderInputs();renderResults();draw();send('new',{...payload(),action:'new'});return}
- wheelNames=[...players];spinning=false;mode='spin';statusEl.textContent='Next round — live mapping is changing…';action.disabled=false;action.textContent='TAP TO SPIN';renderInputs();renderResults();draw();startIdle();send('new',{...payload(),action:'new'});
+function addPlayer(){
+ if(spinning||pendingWinner){alert('Finish this round first.');return}
+ if(active.length>=24){alert('Maximum 24 players.');return}
+ active.push('Player '+(active.length+1));wheelNames=[...active];renderInputs();draw();
+}
+const COLOR_PALETTE=[
+ '#e91e63','#f2ad2f','#65e52f','#2fd9a0','#3478df','#a62fdf',
+ '#ff7043','#26c6da','#ab47bc','#8bc34a','#ef5350','#42a5f5',
+ '#66bb6a','#ffa726','#26a69a','#7e57c2','#ec407a','#8d6e63',
+ '#78909c','#d4e157','#5c6bc0','#00897b','#c0ca33','#6d4c41'
+];
+function col(i,n){return COLOR_PALETTE[i%n];}
+
+function draw(){
+ const n=active.length,W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,R=W*0.44;
+ ctx.clearRect(0,0,W,H);if(n<2)return;
+ ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);
+
+ const fakeMode=spinning&&n<5;
+ const visualN=fakeMode?6:n;
+
+ for(let i=0;i<visualN;i++){
+  const a0=i*2*Math.PI/visualN,a1=(i+1)*2*Math.PI/visualN;
+  ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,R,a0,a1);ctx.closePath();
+  ctx.fillStyle=fakeMode?COLOR_PALETTE[i%6]:COLOR_PALETTE[i%n];
+  ctx.fill();ctx.strokeStyle='#111923';ctx.lineWidth=4;ctx.stroke();
+
+  ctx.save();ctx.rotate((a0+a1)/2);ctx.textAlign='right';ctx.fillStyle='#fff';ctx.font='bold 22px Arial';
+  ctx.shadowColor='#000';ctx.shadowBlur=5;
+  if(spinning)ctx.fillText('• • •',R-18,8);
+  else if(i<n)ctx.fillText(wheelNames[i],R-18,8);
+  ctx.restore();
+ }
+ ctx.beginPath();ctx.arc(0,0,R,0,2*Math.PI);ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.stroke();
+ ctx.beginPath();ctx.arc(0,0,72,0,2*Math.PI);ctx.fillStyle='#111720';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.stroke();
+ ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 20px Arial';ctx.fillText(spinning?'STOP':'SPIN',0,7);
+ ctx.restore();
+}
+function startIdle(){
+ clearInterval(idleTimer);
+ idleTimer=setInterval(()=>{
+  if(spinning||pendingWinner||active.length<2)return;
+  const s=1+Math.floor(Math.random()*(active.length-1));
+  wheelNames=wheelNames.slice(s).concat(wheelNames.slice(0,s));draw();
+ },120);
+}
+function stopIdle(){clearInterval(idleTimer);idleTimer=null}
+function markerIndex(){
+ const n=active.length;
+ const step=2*Math.PI/n;
+ // Canvas marker is fixed at 12 o'clock (-PI/2).
+ // Convert that fixed marker angle into the wheel's local, unrotated angle.
+ let local=((-Math.PI/2-angle)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
+ return Math.floor(local/step)%n;
+}
+function startSpin(){
+ stopIdle();
+ if(pendingWinner){
+   const w=pendingWinner.winner;
+   results.push(w);round++;
+   active=active.filter(x=>x!==pendingWinner.winner);wheelNames=[...active];renderInputs();
+   pendingWinner=null;winnerEl.textContent='';
+   renderResults();
+   if(active.length===1){
+     spinning=false;statusEl.textContent='Final remaining player:';winnerEl.textContent=active[0];
+     action.disabled=true;action.textContent='GAME COMPLETE';draw();return;
+   }
+   wheelNames=[...active];action.textContent='TAP TO SPIN';statusEl.textContent='Next round — live mapping is changing…';
+   draw();startIdle();return;
+ }
+ if(active.length<2)return;
+ spinning=true;winnerEl.textContent='';statusEl.textContent='Spinning — touch the wheel to stop!';
+ action.textContent='TOUCH WHEEL TO STOP';action.disabled=false;
+ velocity=16+Math.random()*7;spinStartAngle=angle;spinStartTime=performance.now();lastT=spinStartTime;stopLocked=false;draw();raf=requestAnimationFrame(tick);
+}
+function tick(t){
+ if(!spinning)return;
+ const dt=Math.min(.04,(t-lastT)/1000);lastT=t;
+ angle+=velocity*dt;draw();
+ raf=requestAnimationFrame(tick);
 }
 function stopAtTouch(e){
- if(!spinning||mode!=='stop')return;
+ if(!spinning || stopLocked)return;
  e.preventDefault();
- // The FIRST pointerdown is the stop instant. Extrapolate only from the
- // latest rendered angle to this exact performance.now() timestamp.
- const now=performance.now();
- const elapsed=Math.max(0,now-lastT);
- const touchAngle=angle+velocity*(elapsed/1000);
- const frozenNames=[...wheelNames];
- const idx=markerIndexAt(touchAngle,frozenNames.length);
- const w=frozenNames[idx];
+ stopLocked=true;
 
+ // FIRST pointerdown is the ONLY stop signal.
+ // Freeze directly from the high-resolution event timestamp.
+ const now=performance.now();
+ const elapsed=Math.max(0,now-spinStartTime);
+ angle=spinStartAngle + velocity*(elapsed/1000);
+
+ // Stop/cancel immediately; no pointerup, timeout, or next frame required.
  spinning=false;
- if(raf){cancelAnimationFrame(raf);raf=0}
- angle=touchAngle;
+ cancelAnimationFrame(raf);
+ raf=0;
  velocity=0;
- wheelNames=frozenNames;
- pendingWinner={idx,winner:w,angle:touchAngle};
- mode='new';
+
+ // Calculate winner from the exact frozen angle immediately.
+ const idx=markerIndex();
+ const w=wheelNames[idx];
+
  draw();
+ pendingWinner={idx:idx,winner:w};
  statusEl.textContent='Stopped — first touch position locked.';
  winnerEl.textContent='Winner: '+w;
  action.textContent='SET NEW SPIN';
- action.disabled=false;
- send('stop',{...payload(),action:'stop'});
 }
-function finishRemoteStop(){spinning=false;if(raf){cancelAnimationFrame(raf);raf=0}velocity=0;draw();if(pendingWinner){mode='new';winnerEl.textContent='Winner: '+pendingWinner.winner;statusEl.textContent='Stopped — first touch position locked.';action.textContent='SET NEW SPIN';action.disabled=false}}
-function tick(t){if(!spinning)return;const dt=Math.min(.04,(t-lastT)/1000);lastT=t;angle+=velocity*dt;draw();raf=requestAnimationFrame(tick)}
-function markerIndexAt(a,n){
- if(n<1)return 0;
- const step=2*Math.PI/n;
- const two=2*Math.PI;
- const local=(((-Math.PI/2)-a)%two+two)%two;
- return Math.floor(local/step)%n;
+function renderResults(){
+ resultsList.innerHTML=results.length?results.map((x,i)=>`<div>${i+1}. ${x}</div>`).join(''):'No confirmed winners yet.';
 }
-function markerIndex(){return markerIndexAt(angle,wheelNames.length)}
-function draw(){const n=wheelNames.length,W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,R=W*.44;ctx.clearRect(0,0,W,H);if(n<2)return;ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);for(let i=0;i<n;i++){const a0=i*2*Math.PI/n,a1=(i+1)*2*Math.PI/n;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,R,a0,a1);ctx.closePath();ctx.fillStyle=col(i);ctx.fill();ctx.strokeStyle='#111923';ctx.lineWidth=4;ctx.stroke();ctx.save();ctx.rotate((a0+a1)/2);ctx.textAlign='right';ctx.fillStyle='#fff';ctx.font='bold 22px Arial';const txt=spinning?'• • •':wheelNames[i];ctx.shadowColor='#000';ctx.shadowBlur=5;ctx.fillText(txt,R-18,8);ctx.restore()}ctx.beginPath();ctx.arc(0,0,R,0,2*Math.PI);ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.stroke();ctx.beginPath();ctx.arc(0,0,72,0,2*Math.PI);ctx.fillStyle='#111720';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 20px Arial';ctx.fillText(spinning?'STOP':'SPIN',0,7);ctx.restore()}
-function startIdle(){clearInterval(idleTimer);idleTimer=setInterval(()=>{if(spinning||pendingWinner||mode!=='spin'||wheelNames.length<2)return;const s=1+Math.floor(Math.random()*(wheelNames.length-1));wheelNames=wheelNames.slice(s).concat(wheelNames.slice(0,s));draw();send('players',{...payload(),action:'players'})},120)}
-function stopIdle(){clearInterval(idleTimer);idleTimer=null}
-function renderInputs(){const box=document.getElementById('players');box.innerHTML='';players.forEach((name,i)=>{const row=document.createElement('div');row.className='player';const inp=document.createElement('input');inp.value=name;inp.placeholder='Player '+(i+1);inp.disabled=spinning||!!pendingWinner||mode==='complete';inp.onchange=()=>renamePlayer(i,inp.value);const b=document.createElement('button');b.textContent='×';b.title='Delete name';b.disabled=spinning||!!pendingWinner||mode==='complete';b.onclick=()=>removePlayer(i);row.append(inp,b);box.append(row)})}
-function renamePlayer(i,value){if(spinning||pendingWinner||mode==='complete')return;const old=players[i],name=(value||'').trim()||('Player '+(i+1));players[i]=name;wheelNames=wheelNames.map(x=>x===old?name:x);results=results.map(x=>x===old?name:x);renderInputs();draw();send('players',{...payload(),action:'players'})}
-function addPlayer(){if(spinning||pendingWinner||mode==='complete'){alert('Finish this round first.');return}if(players.length>=20){alert('Maximum 20 players.');return}const name='Player '+(players.length+1);players.push(name);wheelNames=[...players];renderInputs();draw();send('players',{...payload(),action:'players'});const a=document.querySelectorAll('#players input');if(a.length)a[a.length-1].focus()}
-function removePlayer(i){if(spinning||pendingWinner||mode==='complete'){alert('Finish this round first.');return}if(players.length<=2){alert('Keep at least 2 players.');return}players.splice(i,1);wheelNames=[...players];renderInputs();draw();send('players',{...payload(),action:'players'})}
-function renderResults(){resultsList.innerHTML=results.length?results.map((x,i)=>`<div>${i+1}. ${escapeHtml(x)}</div>`).join(''):'No confirmed winners yet.'}
-function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-action.onclick=startOrNew;document.getElementById('joinRoom').onclick=connectRoom;document.getElementById('addPlayer').onclick=addPlayer;canvas.style.touchAction='none';canvas.addEventListener('pointerdown',e=>{try{canvas.setPointerCapture(e.pointerId)}catch{};stopAtTouch(e)},{passive:false});
+canvas.style.touchAction='none';
+canvas.addEventListener('pointerdown',stopAtTouch,{passive:false,capture:true});
+action.addEventListener('click',startSpin);document.getElementById('addPlayer').addEventListener('click',addPlayer);document.getElementById('resetGame').addEventListener('click',resetGame);
 renderInputs();renderResults();draw();startIdle();
-</script></body></html>
+</script>
+</body>
+</html>
