@@ -62,14 +62,41 @@ function confirmWinnerAndNewSpin(){
  wheelNames=[...players];spinning=false;mode='spin';statusEl.textContent='Next round — live mapping is changing…';action.disabled=false;action.textContent='TAP TO SPIN';renderInputs();renderResults();draw();startIdle();send('new',{...payload(),action:'new'});
 }
 function stopAtTouch(e){
- if(!spinning||mode!=='stop')return;e.preventDefault();
- const now=performance.now(),elapsed=Math.max(0,now-lastT),touchAngle=angle+velocity*(elapsed/1000);
- spinning=false;if(raf){cancelAnimationFrame(raf);raf=0}angle=touchAngle;velocity=0;
- const idx=markerIndex(),w=wheelNames[idx];pendingWinner={idx,winner:w};mode='new';draw();statusEl.textContent='Stopped — first touch position locked.';winnerEl.textContent='Winner: '+w;action.textContent='SET NEW SPIN';action.disabled=false;send('stop',{...payload(),action:'stop'});
+ if(!spinning||mode!=='stop')return;
+ e.preventDefault();
+ // The FIRST pointerdown is the stop instant. Extrapolate only from the
+ // latest rendered angle to this exact performance.now() timestamp.
+ const now=performance.now();
+ const elapsed=Math.max(0,now-lastT);
+ const touchAngle=angle+velocity*(elapsed/1000);
+ const frozenNames=[...wheelNames];
+ const idx=markerIndexAt(touchAngle,frozenNames.length);
+ const w=frozenNames[idx];
+
+ spinning=false;
+ if(raf){cancelAnimationFrame(raf);raf=0}
+ angle=touchAngle;
+ velocity=0;
+ wheelNames=frozenNames;
+ pendingWinner={idx,winner:w,angle:touchAngle};
+ mode='new';
+ draw();
+ statusEl.textContent='Stopped — first touch position locked.';
+ winnerEl.textContent='Winner: '+w;
+ action.textContent='SET NEW SPIN';
+ action.disabled=false;
+ send('stop',{...payload(),action:'stop'});
 }
 function finishRemoteStop(){spinning=false;if(raf){cancelAnimationFrame(raf);raf=0}velocity=0;draw();if(pendingWinner){mode='new';winnerEl.textContent='Winner: '+pendingWinner.winner;statusEl.textContent='Stopped — first touch position locked.';action.textContent='SET NEW SPIN';action.disabled=false}}
 function tick(t){if(!spinning)return;const dt=Math.min(.04,(t-lastT)/1000);lastT=t;angle+=velocity*dt;draw();raf=requestAnimationFrame(tick)}
-function markerIndex(){const n=wheelNames.length,step=2*Math.PI/n;let local=((-Math.PI/2-angle)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);return Math.floor(local/step)%n}
+function markerIndexAt(a,n){
+ if(n<1)return 0;
+ const step=2*Math.PI/n;
+ const two=2*Math.PI;
+ const local=(((-Math.PI/2)-a)%two+two)%two;
+ return Math.floor(local/step)%n;
+}
+function markerIndex(){return markerIndexAt(angle,wheelNames.length)}
 function draw(){const n=wheelNames.length,W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,R=W*.44;ctx.clearRect(0,0,W,H);if(n<2)return;ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);for(let i=0;i<n;i++){const a0=i*2*Math.PI/n,a1=(i+1)*2*Math.PI/n;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,R,a0,a1);ctx.closePath();ctx.fillStyle=col(i);ctx.fill();ctx.strokeStyle='#111923';ctx.lineWidth=4;ctx.stroke();ctx.save();ctx.rotate((a0+a1)/2);ctx.textAlign='right';ctx.fillStyle='#fff';ctx.font='bold 22px Arial';const txt=spinning?'• • •':wheelNames[i];ctx.shadowColor='#000';ctx.shadowBlur=5;ctx.fillText(txt,R-18,8);ctx.restore()}ctx.beginPath();ctx.arc(0,0,R,0,2*Math.PI);ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.stroke();ctx.beginPath();ctx.arc(0,0,72,0,2*Math.PI);ctx.fillStyle='#111720';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 20px Arial';ctx.fillText(spinning?'STOP':'SPIN',0,7);ctx.restore()}
 function startIdle(){clearInterval(idleTimer);idleTimer=setInterval(()=>{if(spinning||pendingWinner||mode!=='spin'||wheelNames.length<2)return;const s=1+Math.floor(Math.random()*(wheelNames.length-1));wheelNames=wheelNames.slice(s).concat(wheelNames.slice(0,s));draw();send('players',{...payload(),action:'players'})},120)}
 function stopIdle(){clearInterval(idleTimer);idleTimer=null}
@@ -79,6 +106,6 @@ function addPlayer(){if(spinning||pendingWinner||mode==='complete'){alert('Finis
 function removePlayer(i){if(spinning||pendingWinner||mode==='complete'){alert('Finish this round first.');return}if(players.length<=2){alert('Keep at least 2 players.');return}players.splice(i,1);wheelNames=[...players];renderInputs();draw();send('players',{...payload(),action:'players'})}
 function renderResults(){resultsList.innerHTML=results.length?results.map((x,i)=>`<div>${i+1}. ${escapeHtml(x)}</div>`).join(''):'No confirmed winners yet.'}
 function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-action.onclick=startOrNew;document.getElementById('joinRoom').onclick=connectRoom;document.getElementById('addPlayer').onclick=addPlayer;canvas.style.touchAction='none';canvas.addEventListener('pointerdown',stopAtTouch,{passive:false});
+action.onclick=startOrNew;document.getElementById('joinRoom').onclick=connectRoom;document.getElementById('addPlayer').onclick=addPlayer;canvas.style.touchAction='none';canvas.addEventListener('pointerdown',e=>{try{canvas.setPointerCapture(e.pointerId)}catch{};stopAtTouch(e)},{passive:false});
 renderInputs();renderResults();draw();startIdle();
 </script></body></html>
