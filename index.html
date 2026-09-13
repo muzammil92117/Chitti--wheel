@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Real Chitti Wheel</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#10131a;color:#fff;font-family:Arial,sans-serif;min-height:100vh}
+.wrap{max-width:720px;margin:auto;padding:18px 14px 35px;text-align:center}
+h1{margin:4px 0 6px;font-size:28px}.sub{color:#aeb6c5;font-size:14px;line-height:1.45;margin-bottom:16px}
+.players{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.player{display:flex;gap:6px}.player input{width:100%;padding:10px;border:1px solid #303746;border-radius:9px;background:#181d27;color:#fff;font-size:15px}
+.player button{width:38px;border:0;border-radius:9px;background:#292f3b;color:#fff;font-size:18px}
+.stage{position:relative;width:min(92vw,600px);margin:12px auto}.stage canvas{display:block;width:100%;height:auto}
+.marker{position:absolute;left:50%;top:-1px;transform:translateX(-50%);width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-top:28px solid #fff;z-index:3;filter:drop-shadow(0 2px 4px #000)}
+button.main{margin-top:8px;width:min(92vw,420px);padding:14px 18px;border:0;border-radius:12px;background:#fff;color:#111;font-weight:800;font-size:17px}
+.status{min-height:28px;margin:12px 0;color:#dce2eb;font-weight:700}.winner{font-size:26px;font-weight:900;margin:5px 0 14px}
+.results{margin:12px auto;text-align:left;max-width:420px;background:#171c25;border:1px solid #2b3240;border-radius:12px;padding:12px}
+.results h3{margin:0 0 8px}.results div{padding:5px 0;border-bottom:1px solid #262d39}.results div:last-child{border:0}
+.note{font-size:12px;color:#8f98a8;margin-top:12px}
+@media(max-width:480px){.players{grid-template-columns:1fr}.stage{width:96vw}h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div id="roomBar" style="background:#171c25;border:1px solid #2b3240;border-radius:12px;padding:12px;margin-bottom:12px;text-align:left">
+  <div style="font-weight:800;margin-bottom:8px">🌐 Real-time room</div>
+  <div style="display:flex;gap:7px;flex-wrap:wrap">
+    <input id="roomCode" placeholder="Room code" maxlength="12" style="flex:1;min-width:120px;padding:10px;border:1px solid #303746;border-radius:9px;background:#10131a;color:#fff">
+    <button id="joinRoom" style="padding:10px 14px;border:0;border-radius:9px;font-weight:800">JOIN / CREATE</button>
+  </div>
+  <div id="roomStatus" style="font-size:12px;color:#aeb6c5;margin-top:7px">Not connected</div>
+</div>
+<h1>🎟️ Real Chitti Wheel</h1>
+<div class="sub">Before spinning, the names and colours keep changing live. Tap once to spin; while spinning, touch the wheel to stop it instantly at that exact moment.</div>
+<div class="players" id="players"></div>
+<div class="stage"><canvas id="wheel" width="700" height="700"></canvas><div class="marker"></div></div>
+<div id="status" class="status">Waiting — live mapping is changing…</div>
+<div id="winner" class="winner"></div>
+<button id="action" class="main">TAP TO SPIN</button>
+<div class="results"><h3>Results</h3><div id="resultsList">No confirmed winners yet.</div></div>
+<div class="note">The winner is removed only after you press SET NEW SPIN.</div>
+</div>
+<script>
+const canvas=document.getElementById('wheel'),ctx=canvas.getContext('2d');
+const action=document.getElementById('action'),statusEl=document.getElementById('status'),winnerEl=document.getElementById('winner'),resultsList=document.getElementById('resultsList');
+let active=['Ayaan','Hamza','Zaid','Fahad','Bilal','Usman'];
+let angle=0, velocity=0, spinning=false, raf=0, lastT=0;
+let idleTimer=null, idlePhase=0, pendingWinner=null, round=0, results=[];
+
+
+let socket=null, roomId=null, applyingRemote=false;
+function syncStatus(t){const x=document.getElementById('roomStatus');if(x)x.textContent=t;}
+function sendState(type,data={}){
+  if(!socket || socket.readyState!==WebSocket.OPEN || applyingRemote)return;
+  socket.send(JSON.stringify({type,room:roomId,...data}));
+}
+function connectRoom(){
+  roomId=(document.getElementById('roomCode').value||'').trim().toUpperCase().replace(/[^A-Z0-9-]/g,'');
+  if(!roomId){alert('Enter a room code.');return}
+  const proto=location.protocol==='https:'?'wss':'ws';
+  socket=new WebSocket(`${proto}://${location.host}`);
+  socket.onopen=()=>{
+    syncStatus('Connected — room '+roomId);
+    socket.send(JSON.stringify({type:'join',room:roomId}));
+  };
+  socket.onclose=()=>syncStatus('Disconnected');
+  socket.onerror=()=>syncStatus('Connection error');
+  socket.onmessage=(ev)=>{
+    const m=JSON.parse(ev.data);
+    if(m.type==='state'){
+      applyingRemote=true;
+      active=m.active||active; angle=m.angle||0; spinning=!!m.spinning;
+      pendingWinner=m.pendingWinner||null; round=m.round||0; results=m.results||[];
+      velocity=m.velocity||0;
+      renderInputs();renderResults();draw();
+      applyingRemote=false;
+      if(spinning && !raf){lastT=performance.now();raf=requestAnimationFrame(tick)}
+      if(!spinning)cancelAnimationFrame(raf);
+    }
+    if(m.type==='event'){
+      applyingRemote=true;
+      if(m.event==='start'){ startSpin(); }
+      if(m.event==='stop'){ angle=m.angle; spinning=false; velocity=0; pendingWinner=m.pendingWinner; draw(); winnerEl.textContent='Winner: '+pendingWinner.winner; action.textContent='SET NEW SPIN';}
+      if(m.event==='new'){ active=m.active; results=m.results; pendingWinner=null; renderInputs();renderResults();draw();startIdle();}
+      applyingRemote=false;
+    }
+  };
+}
+document.getElementById('joinRoom').onclick=connectRoom;
+function broadcastState(){
+  sendState('state',{active,angle,spinning,velocity,pendingWinner,round,results});
+}
+
+function renderInputs(){
+ const box=document.getElementById('players'); box.innerHTML='';
+ active.forEach((name,i)=>{
+   const row=document.createElement('div');row.className='player';
+   const inp=document.createElement('input');inp.value=name;
+   inp.oninput=()=>{active[i]=inp.value||('Player '+(i+1));draw();};
+   const b=document.createElement('button');b.textContent='×';b.onclick=()=>{if(active.length>2){active.splice(i,1);renderInputs();draw();}else alert('Keep at least 2 players.');};
+   row.append(inp,b);box.append(row);
+ });
+}
+const COLOR_PALETTE=[
+ '#e91e63','#f2ad2f','#65e52f','#2fd9a0','#3478df','#a62fdf',
+ '#ff7043','#26c6da','#ab47bc','#8bc34a'
+];
+function col(i,n){
+  // Always use exactly n colours for n wheel segments.
+  // During the spin, colours stay fixed to their segments and rotate
+  // with the wheel — no extra/random colours appear.
+  const palette=COLOR_PALETTE.slice(0,n);
+  return palette[i % palette.length];
+}
+function draw(){
+ const n=active.length,W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,R=W*0.44;
+ ctx.clearRect(0,0,W,H);
+ ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);
+ for(let i=0;i<n;i++){
+   const a0=i*2*Math.PI/n,a1=(i+1)*2*Math.PI/n;
+   ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,R,a0,a1);ctx.closePath();
+   ctx.fillStyle=col(i,n);ctx.fill();ctx.strokeStyle='#111923';ctx.lineWidth=4;ctx.stroke();
+   ctx.save();ctx.rotate((a0+a1)/2);ctx.textAlign='right';ctx.fillStyle='#fff';ctx.font='bold 22px Arial';
+   // Names are hidden only during active spinning.
+   const txt=spinning?'• • •':active[i];
+   ctx.shadowColor='#000';ctx.shadowBlur=5;ctx.fillText(txt,R-18,8);ctx.restore();
+ }
+ ctx.beginPath();ctx.arc(0,0,R,0,2*Math.PI);ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.stroke();
+ ctx.beginPath();ctx.arc(0,0,72,0,2*Math.PI);ctx.fillStyle='#111720';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.stroke();
+ ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 20px Arial';ctx.fillText(spinning?'STOP':'SPIN',0,7);
+ ctx.restore();
+}
+function startIdle(){
+ clearInterval(idleTimer);
+ idleTimer=setInterval(()=>{
+   if(spinning||pendingWinner||active.length<2)return;
+   // Actually change which name occupies each visible segment.
+   const s=1+Math.floor(Math.random()*(active.length-1));
+   active=active.slice(s).concat(active.slice(0,s));
+   renderInputs();draw();
+ },120);
+}
+function stopIdle(){clearInterval(idleTimer);idleTimer=null}
+function markerIndex(){
+ const n=active.length;
+ const step=2*Math.PI/n;
+ // Canvas marker is fixed at 12 o'clock (-PI/2).
+ // Convert that fixed marker angle into the wheel's local, unrotated angle.
+ let local=((-Math.PI/2-angle)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
+ return Math.floor(local/step)%n;
+}
+function startSpin(){
+ stopIdle();
+ if(pendingWinner){
+   const w=pendingWinner.winner;
+   results.push(w);round++;
+   active.splice(pendingWinner.idx,1);
+   pendingWinner=null;winnerEl.textContent='';
+   renderResults();
+   if(active.length===1){
+     spinning=false;statusEl.textContent='Final remaining player:';winnerEl.textContent=active[0];
+     action.disabled=true;action.textContent='GAME COMPLETE';draw();return;
+   }
+   action.textContent='TAP TO SPIN';statusEl.textContent='Next round — live mapping is changing…';
+   draw();startIdle();sendState('event',{event:'new',active,results});broadcastState();return;
+ }
+ if(active.length<2)return;
+ spinning=true;winnerEl.textContent='';statusEl.textContent='Spinning — touch the wheel to stop!';
+ action.textContent='TOUCH WHEEL TO STOP';action.disabled=false;
+ velocity=16+Math.random()*7;lastT=performance.now();draw();sendState('event',{event:'start'});broadcastState();raf=requestAnimationFrame(tick);
+}
+function tick(t){
+ if(!spinning)return;
+ const dt=Math.min(.04,(t-lastT)/1000);lastT=t;
+ angle+=velocity*dt;draw();
+ raf=requestAnimationFrame(tick);
+}
+function stopAtTouch(e){
+ if(!spinning)return;
+ e.preventDefault();
+
+ // FIRST pointerdown is the authoritative stop instant and point.
+ const rect=canvas.getBoundingClientRect();
+ const px=(e.clientX-rect.left)*(canvas.width/rect.width);
+ const py=(e.clientY-rect.top)*(canvas.height/rect.height);
+ const dx=px-canvas.width/2, dy=py-canvas.height/2;
+
+ // Stop immediately at the angle represented by the wheel at this event.
+ const now=performance.now();
+ const elapsed=Math.max(0,now-lastT);
+ const touchAngle=angle + velocity*(elapsed/1000);
+
+ spinning=false;
+ cancelAnimationFrame(raf);
+ velocity=0;
+ angle=touchAngle;
+
+ // The selected segment is calculated from the exact frozen wheel angle.
+ const idx=markerIndex();
+ const w=active[idx];
+
+ draw();
+ pendingWinner={idx:idx,winner:w};
+ statusEl.textContent='Stopped — first touch position locked.';
+ winnerEl.textContent='Winner: '+w;
+ action.textContent='SET NEW SPIN';
+ sendState('event',{event:'stop',angle,pendingWinner}); broadcastState();
+}
+function renderResults(){
+ resultsList.innerHTML=results.length?results.map((x,i)=>`<div>${i+1}. ${x}</div>`).join(''):'No confirmed winners yet.';
+}
+canvas.style.touchAction='none';
+canvas.addEventListener('pointerdown',stopAtTouch,{passive:false});
+action.addEventListener('click',startSpin);
+renderInputs();renderResults();draw();startIdle();
+</script>
+</body>
+</html>
