@@ -8,197 +8,77 @@
 *{box-sizing:border-box}body{margin:0;background:#10131a;color:#fff;font-family:Arial,sans-serif;min-height:100vh}
 .wrap{max-width:720px;margin:auto;padding:18px 14px 35px;text-align:center}
 h1{margin:4px 0 6px;font-size:28px}.sub{color:#aeb6c5;font-size:14px;line-height:1.45;margin-bottom:16px}
-.room{background:#171c25;border:1px solid #2b3240;border-radius:12px;padding:12px;margin-bottom:12px;text-align:left}
-.room-title{font-weight:800;margin-bottom:8px}.room-row{display:flex;gap:7px;flex-wrap:wrap}.room-row input{flex:1;min-width:120px;padding:10px;border:1px solid #303746;border-radius:9px;background:#10131a;color:#fff}.room-row button{padding:10px 14px;border:0;border-radius:9px;font-weight:800}.room-status{font-size:12px;color:#aeb6c5;margin-top:7px}
-.manage{background:#171c25;border:1px solid #2b3240;border-radius:12px;padding:12px;margin-bottom:12px;text-align:left}.manage-title{font-weight:800;margin-bottom:9px}.players{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.player{display:flex;gap:6px}.player input{width:100%;padding:10px;border:1px solid #303746;border-radius:9px;background:#181d27;color:#fff;font-size:15px}.player button{width:38px;border:0;border-radius:9px;background:#292f3b;color:#fff;font-size:18px}.manage-actions{display:flex;gap:8px}.manage-actions button{padding:10px 14px;border:0;border-radius:9px;font-weight:800}.add{background:#fff;color:#111}.remove-note{font-size:12px;color:#8f98a8;margin-top:7px}
-.stage{position:relative;width:min(92vw,600px);margin:12px auto}.stage canvas{display:block;width:100%;height:auto}
-.marker{position:absolute;left:50%;top:-1px;transform:translateX(-50%);width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-top:28px solid #fff;z-index:3;filter:drop-shadow(0 2px 4px #000)}
-button.main{margin-top:8px;width:min(92vw,420px);padding:14px 18px;border:0;border-radius:12px;background:#fff;color:#111;font-weight:800;font-size:17px}
-.status{min-height:28px;margin:12px 0;color:#dce2eb;font-weight:700}.winner{font-size:26px;font-weight:900;margin:5px 0 14px}
-.results{margin:12px auto;text-align:left;max-width:420px;background:#171c25;border:1px solid #2b3240;border-radius:12px;padding:12px}.results h3{margin:0 0 8px}.results div{padding:5px 0;border-bottom:1px solid #262d39}.results div:last-child{border:0}
-.note{font-size:12px;color:#8f98a8;margin-top:12px}
+.room,.manage,.results{background:#171c25;border:1px solid #2b3240;border-radius:12px;padding:12px;margin-bottom:12px;text-align:left}
+.room-title,.manage-title{font-weight:800;margin-bottom:8px}.room-row{display:flex;gap:7px;flex-wrap:wrap}.room-row input{flex:1;min-width:120px;padding:10px;border:1px solid #303746;border-radius:9px;background:#10131a;color:#fff}.room-row button{padding:10px 14px;border:0;border-radius:9px;font-weight:800}.room-status{font-size:12px;color:#aeb6c5;margin-top:7px}
+.players{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.player{display:flex;gap:6px}.player input{width:100%;padding:10px;border:1px solid #303746;border-radius:9px;background:#181d27;color:#fff;font-size:15px}.player button{width:38px;border:0;border-radius:9px;background:#292f3b;color:#fff;font-size:18px}.player button:disabled,.player input:disabled{opacity:.55}
+.manage-actions{display:flex;gap:8px}.manage-actions button{padding:10px 14px;border:0;border-radius:9px;font-weight:800}.add{background:#fff;color:#111}.remove-note{font-size:12px;color:#8f98a8;margin-top:7px}
+.stage{position:relative;width:min(92vw,600px);margin:12px auto}.stage canvas{display:block;width:100%;height:auto}.marker{position:absolute;left:50%;top:-1px;transform:translateX(-50%);width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-top:28px solid #fff;z-index:3;filter:drop-shadow(0 2px 4px #000)}
+button.main{margin-top:8px;width:min(92vw,420px);padding:14px 18px;border:0;border-radius:12px;background:#fff;color:#111;font-weight:800;font-size:17px}.status{min-height:28px;margin:12px 0;color:#dce2eb;font-weight:700}.winner{font-size:26px;font-weight:900;margin:5px 0 14px}
+.results{margin:12px auto;text-align:left;max-width:420px}.results h3{margin:0 0 8px}.results div{padding:5px 0;border-bottom:1px solid #262d39}.results div:last-child{border:0}.note{font-size:12px;color:#8f98a8;margin-top:12px}
 @media(max-width:480px){.players{grid-template-columns:1fr}.stage{width:96vw}h1{font-size:24px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-<div class="room">
-  <div class="room-title">🌐 Real-time room</div>
-  <div class="room-row">
-    <input id="roomCode" placeholder="Room code" maxlength="12">
-    <button id="joinRoom">JOIN / CREATE</button>
-  </div>
-  <div id="roomStatus" class="room-status">Not connected</div>
-</div>
-
+<div class="room"><div class="room-title">🌐 Real-time room</div><div class="room-row"><input id="roomCode" placeholder="Room code" maxlength="12"><button id="joinRoom">JOIN / CREATE</button></div><div id="roomStatus" class="room-status">Not connected</div></div>
 <h1>🎟️ Real Chitti Wheel</h1>
-<div class="sub">Before spinning, the names and colours keep changing live. Tap once to spin; while spinning, touch the wheel to stop it instantly at that exact moment.</div>
-
-<div class="manage">
-  <div class="manage-title">👥 Players</div>
-  <div class="players" id="players"></div>
-  <div class="manage-actions"><button id="addPlayer" class="add">＋ ADD NAME</button></div>
-  <div class="remove-note">You can change, add or delete names anytime before a spin. Keep at least 2 players.</div>
-</div>
-
+<div class="sub">Before spinning, the names and colours keep changing live. Tap once to spin; while spinning, your first touch on the wheel freezes the exact wheel position at that moment.</div>
+<div class="manage"><div class="manage-title">👥 Players</div><div class="players" id="players"></div><div class="manage-actions"><button id="addPlayer" class="add">＋ ADD NAME</button></div><div class="remove-note">Change, add or delete names before a round starts. Keep at least 2 players.</div></div>
 <div class="stage"><canvas id="wheel" width="700" height="700"></canvas><div class="marker"></div></div>
-<div id="status" class="status">Waiting — live mapping is changing…</div>
-<div id="winner" class="winner"></div>
+<div id="status" class="status">Waiting — live mapping is changing…</div><div id="winner" class="winner"></div>
 <button id="action" class="main">TAP TO SPIN</button>
 <div class="results"><h3>Results</h3><div id="resultsList">No confirmed winners yet.</div></div>
-<div class="note">The winner is removed only after you press SET NEW SPIN.</div>
+<div class="note">The winner is removed only when you press SET NEW SPIN.</div>
 </div>
-
 <script>
 const canvas=document.getElementById('wheel'),ctx=canvas.getContext('2d');
 const action=document.getElementById('action'),statusEl=document.getElementById('status'),winnerEl=document.getElementById('winner'),resultsList=document.getElementById('resultsList');
-
-// Canonical player list stays stable for editing. wheelNames is only the fast-changing wheel mapping.
 let players=['Ayaan','Hamza','Zaid','Fahad','Bilal','Usman'];
 let wheelNames=[...players];
-let angle=0, velocity=0, spinning=false, raf=0, lastT=0;
-let idleTimer=null, pendingWinner=null, round=0, results=[];
-let socket=null, roomId=null, applyingRemote=false;
-
-const COLOR_PALETTE=[
- '#e91e63','#f2ad2f','#65e52f','#2fd9a0','#3478df','#a62fdf','#ff7043','#26c6da','#ab47bc','#8bc34a',
- '#ef5350','#42a5f5','#66bb6a','#ffa726','#26a69a','#7e57c2','#ec407a','#8d6e63','#78909c','#d4e157',
- '#5c6bc0','#29b6f6','#9ccc65','#ffca28','#26c6da','#ba68c8','#ff8a65','#4db6ac','#7986cb','#aed581'
-];
-function col(i,n){return COLOR_PALETTE[i%COLOR_PALETTE.length]}
-function syncStatus(t){const x=document.getElementById('roomStatus');if(x)x.textContent=t}
-function statePayload(){return {players,wheelNames,angle,spinning,velocity,pendingWinner,round,results}}
-function sendState(){
- if(!socket||socket.readyState!==WebSocket.OPEN||applyingRemote||!roomId)return;
- socket.send(JSON.stringify({type:'state',room:roomId,...statePayload()}));
-}
-function sendEvent(event){
- if(!socket||socket.readyState!==WebSocket.OPEN||applyingRemote||!roomId)return;
- socket.send(JSON.stringify({type:'event',room:roomId,event,...statePayload()}));
-}
+let angle=0,velocity=0,spinning=false,raf=0,lastT=0;
+let idleTimer=null,pendingWinner=null,round=0,results=[],mode='spin';
+let socket=null,roomId=null,applyingRemote=false;
+const COLORS=['#e91e63','#f2ad2f','#65e52f','#2fd9a0','#3478df','#a62fdf','#ff7043','#26c6da','#ab47bc','#8bc34a','#ef5350','#42a5f5','#66bb6a','#ffa726','#26a69a','#7e57c2','#ec407a','#8d6e63','#78909c','#d4e157'];
+function col(i){return COLORS[i%COLORS.length]}
+function syncStatus(t){document.getElementById('roomStatus').textContent=t}
+function payload(){return {players,wheelNames,angle,spinning,velocity,pendingWinner,round,results,mode}}
+function send(type,data={}){if(!socket||socket.readyState!==WebSocket.OPEN||applyingRemote||!roomId)return;socket.send(JSON.stringify({type,room:roomId,...data}))}
 function connectRoom(){
- roomId=(document.getElementById('roomCode').value||'').trim().toUpperCase().replace(/[^A-Z0-9-]/g,'');
- if(!roomId){alert('Enter a room code.');return}
- const proto=location.protocol==='https:'?'wss':'ws';
- if(socket)try{socket.close()}catch{}
- socket=new WebSocket(`${proto}://${location.host}`);
- socket.onopen=()=>{syncStatus('Connected — room '+roomId);socket.send(JSON.stringify({type:'join',room:roomId}))};
- socket.onclose=()=>syncStatus('Disconnected');
- socket.onerror=()=>syncStatus('Connection error');
- socket.onmessage=(ev)=>{
-  const m=JSON.parse(ev.data);
-  if(m.type==='state'){
-   applyingRemote=true;
-   if(Array.isArray(m.players)&&m.players.length>=2)players=m.players;
-   if(Array.isArray(m.wheelNames)&&m.wheelNames.length>=2)wheelNames=m.wheelNames;else wheelNames=[...players];
-   angle=Number(m.angle)||0;spinning=!!m.spinning;pendingWinner=m.pendingWinner||null;round=Number(m.round)||0;results=Array.isArray(m.results)?m.results:[];velocity=Number(m.velocity)||0;
-   renderInputs();renderResults();draw();
-   applyingRemote=false;
-   if(spinning&&!raf){lastT=performance.now();raf=requestAnimationFrame(tick)}
-   if(!spinning)cancelAnimationFrame(raf);
-  }
-  if(m.type==='event'){
-   applyingRemote=true;
-   if(m.event==='start'){applyStateFromMessage(m);startSpin(true)}
-   if(m.event==='stop'){applyStateFromMessage(m);spinning=false;velocity=0;cancelAnimationFrame(raf);draw();if(pendingWinner){winnerEl.textContent='Winner: '+pendingWinner.winner;action.textContent='SET NEW SPIN'}startIdle()}
-   if(m.event==='new'){applyStateFromMessage(m);pendingWinner=null;winnerEl.textContent='';renderInputs();renderResults();draw();startIdle()}
-   if(m.event==='players'){applyStateFromMessage(m);renderInputs();draw();}
-   applyingRemote=false;
-  }
- };
+ roomId=(document.getElementById('roomCode').value||'').trim().toUpperCase().replace(/[^A-Z0-9-]/g,'');if(!roomId){alert('Enter a room code.');return}
+ const proto=location.protocol==='https:'?'wss':'ws';try{if(socket)socket.close()}catch{} socket=new WebSocket(`${proto}://${location.host}`);
+ socket.onopen=()=>{syncStatus('Connected — room '+roomId);socket.send(JSON.stringify({type:'join',room:roomId}))};socket.onclose=()=>syncStatus('Disconnected');socket.onerror=()=>syncStatus('Connection error');
+ socket.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch{return}; if(m.type==='state'){apply(m);return} if(m.type==='action'){apply(m);if(m.action==='start'){beginSpin(true)}else if(m.action==='stop'){finishRemoteStop()}else if(m.action==='new'){showReady()}else if(m.action==='players'){renderInputs();draw()}}};
 }
-function applyStateFromMessage(m){
- if(Array.isArray(m.players)&&m.players.length>=1)players=m.players;
- if(Array.isArray(m.wheelNames)&&m.wheelNames.length>=1)wheelNames=m.wheelNames;else wheelNames=[...players];
- if(Number.isFinite(Number(m.angle)))angle=Number(m.angle);spinning=!!m.spinning;velocity=Number(m.velocity)||0;pendingWinner=m.pendingWinner||null;round=Number(m.round)||0;results=Array.isArray(m.results)?m.results:results;
+function apply(m){applyingRemote=true;if(Array.isArray(m.players)&&m.players.length>=1)players=m.players;if(Array.isArray(m.wheelNames)&&m.wheelNames.length>=1)wheelNames=m.wheelNames;else wheelNames=[...players];angle=Number(m.angle)||0;velocity=Number(m.velocity)||0;spinning=!!m.spinning;pendingWinner=m.pendingWinner||null;round=Number(m.round)||0;results=Array.isArray(m.results)?m.results:results;mode=m.mode||((pendingWinner)?'new':'spin');renderInputs();renderResults();draw();applyingRemote=false;if(spinning&&!raf){lastT=performance.now();raf=requestAnimationFrame(tick)}if(!spinning&&raf){cancelAnimationFrame(raf);raf=0}}
+function beginSpin(remote){stopIdle();if(players.length<2)return;spinning=true;pendingWinner=null;mode='stop';winnerEl.textContent='';statusEl.textContent='Spinning — touch the wheel to stop!';action.textContent='TOUCH WHEEL TO STOP';action.disabled=false;velocity=remote?(Number(velocity)||20):(16+Math.random()*7);lastT=performance.now();draw();if(!remote)send('start',payload());if(!raf)raf=requestAnimationFrame(tick)}
+function startOrNew(){
+ if(mode==='new'&&pendingWinner){confirmWinnerAndNewSpin();return}
+ if(mode==='spin'){beginSpin(false);return}
 }
-document.getElementById('joinRoom').onclick=connectRoom;
-
-action.addEventListener('click',startSpin);
-document.getElementById('addPlayer').onclick=addPlayer;
-
-function renderInputs(){
- const box=document.getElementById('players');box.innerHTML='';
- players.forEach((name,i)=>{
-  const row=document.createElement('div');row.className='player';
-  const inp=document.createElement('input');inp.value=name;inp.placeholder='Player '+(i+1);inp.disabled=spinning||!!pendingWinner;
-  inp.oninput=()=>{
-   const old=players[i],value=inp.value.trim();
-   players[i]=value||('Player '+(i+1));
-   // Rename the player everywhere, including the current wheel mapping and past result labels.
-   wheelNames=wheelNames.map(x=>x===old?players[i]:x);
-   results=results.map(x=>x===old?players[i]:x);
-   draw();sendState();
-  };
-  inp.onblur=()=>{if(!inp.value.trim()){inp.value=players[i]||('Player '+(i+1));}};
-  const b=document.createElement('button');b.textContent='×';b.title='Delete name';b.disabled=spinning||!!pendingWinner;b.onclick=()=>removePlayer(i);
-  row.append(inp,b);box.append(row);
- });
+function confirmWinnerAndNewSpin(){
+ if(!pendingWinner)return;
+ const w=pendingWinner.winner;results.push(w);round++;players=players.filter(x=>x!==w);pendingWinner=null;winnerEl.textContent='';
+ if(players.length===1){wheelNames=[...players];spinning=false;mode='complete';statusEl.textContent='Final remaining player:';winnerEl.textContent=players[0];action.disabled=true;action.textContent='GAME COMPLETE';renderInputs();renderResults();draw();send('new',{...payload(),action:'new'});return}
+ wheelNames=[...players];spinning=false;mode='spin';statusEl.textContent='Next round — live mapping is changing…';action.disabled=false;action.textContent='TAP TO SPIN';renderInputs();renderResults();draw();startIdle();send('new',{...payload(),action:'new'});
 }
-function addPlayer(){
- if(spinning||pendingWinner){alert('Finish this round first.');return}
- if(players.length>=20){alert('Maximum 20 players.');return}
- const n=players.length+1,name='Player '+n;players.push(name);wheelNames.push(name);renderInputs();draw();sendState();sendEvent('players');
- const inputs=document.querySelectorAll('#players input');if(inputs.length)inputs[inputs.length-1].focus();
-}
-function removePlayer(i){
- if(players.length<=2){alert('Keep at least 2 players.');return}
- if(spinning||pendingWinner){alert('Finish this round first.');return}
- const name=players[i];players.splice(i,1);wheelNames=wheelNames.filter(x=>x!==name);renderInputs();draw();sendState();sendEvent('players');
-}
-
-function draw(){
- const n=wheelNames.length,W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,R=W*0.44;ctx.clearRect(0,0,W,H);
- if(n<2)return;
- ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);
- for(let i=0;i<n;i++){
-  const a0=i*2*Math.PI/n,a1=(i+1)*2*Math.PI/n;
-  ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,R,a0,a1);ctx.closePath();ctx.fillStyle=col(i,n);ctx.fill();ctx.strokeStyle='#111923';ctx.lineWidth=4;ctx.stroke();
-  ctx.save();ctx.rotate((a0+a1)/2);ctx.textAlign='right';ctx.fillStyle='#fff';ctx.font='bold 22px Arial';
-  const txt=spinning?'• • •':wheelNames[i];ctx.shadowColor='#000';ctx.shadowBlur=5;ctx.fillText(txt,R-18,8);ctx.restore();
- }
- ctx.beginPath();ctx.arc(0,0,R,0,2*Math.PI);ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.stroke();
- ctx.beginPath();ctx.arc(0,0,72,0,2*Math.PI);ctx.fillStyle='#111720';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.stroke();
- ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 20px Arial';ctx.fillText(spinning?'STOP':'SPIN',0,7);ctx.restore();
-}
-function startIdle(){
- clearInterval(idleTimer);idleTimer=setInterval(()=>{
-  if(spinning||pendingWinner||wheelNames.length<2)return;
-  const s=1+Math.floor(Math.random()*(wheelNames.length-1));wheelNames=wheelNames.slice(s).concat(wheelNames.slice(0,s));draw();
- },120);
-}
-function stopIdle(){clearInterval(idleTimer);idleTimer=null}
-function markerIndex(){
- const n=wheelNames.length,step=2*Math.PI/n;
- let local=((-Math.PI/2-angle)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
- return Math.floor(local/step)%n;
-}
-function startSpin(remote=false){
- stopIdle();
- if(pendingWinner&&!remote){
-  const w=pendingWinner.winner;results.push(w);round++;players=players.filter(x=>x!==w);wheelNames=wheelNames.filter(x=>x!==w);pendingWinner=null;winnerEl.textContent='';renderResults();
-  if(players.length===1){spinning=false;wheelNames=[...players];statusEl.textContent='Final remaining player:';winnerEl.textContent=players[0];action.disabled=true;action.textContent='GAME COMPLETE';draw();sendState();sendEvent('new');return}
-  wheelNames=[...players];statusEl.textContent='Next round — live mapping is changing…';action.textContent='TAP TO SPIN';draw();renderInputs();startIdle();sendState();sendEvent('new');return;
- }
- if(players.length<2)return;
- spinning=true;winnerEl.textContent='';statusEl.textContent='Spinning — touch the wheel to stop!';action.textContent='TOUCH WHEEL TO STOP';action.disabled=false;
- velocity=16+Math.random()*7;lastT=performance.now();draw();
- if(!remote){sendEvent('start');sendState()}
- raf=requestAnimationFrame(tick);
-}
-function tick(t){if(!spinning)return;const dt=Math.min(.04,(t-lastT)/1000);lastT=t;angle+=velocity*dt;draw();raf=requestAnimationFrame(tick)}
 function stopAtTouch(e){
- if(!spinning)return;e.preventDefault();
- // FIRST pointerdown is the local stop instant. Extrapolate from the last frame to this event timestamp.
+ if(!spinning||mode!=='stop')return;e.preventDefault();
  const now=performance.now(),elapsed=Math.max(0,now-lastT),touchAngle=angle+velocity*(elapsed/1000);
- spinning=false;cancelAnimationFrame(raf);velocity=0;angle=touchAngle;
- const idx=markerIndex(),w=wheelNames[idx];draw();pendingWinner={idx,winner:w};statusEl.textContent='Stopped — first touch position locked.';winnerEl.textContent='Winner: '+w;action.textContent='SET NEW SPIN';
- sendEvent('stop');sendState();
+ spinning=false;if(raf){cancelAnimationFrame(raf);raf=0}angle=touchAngle;velocity=0;
+ const idx=markerIndex(),w=wheelNames[idx];pendingWinner={idx,winner:w};mode='new';draw();statusEl.textContent='Stopped — first touch position locked.';winnerEl.textContent='Winner: '+w;action.textContent='SET NEW SPIN';action.disabled=false;send('stop',{...payload(),action:'stop'});
 }
+function finishRemoteStop(){spinning=false;if(raf){cancelAnimationFrame(raf);raf=0}velocity=0;draw();if(pendingWinner){mode='new';winnerEl.textContent='Winner: '+pendingWinner.winner;statusEl.textContent='Stopped — first touch position locked.';action.textContent='SET NEW SPIN';action.disabled=false}}
+function tick(t){if(!spinning)return;const dt=Math.min(.04,(t-lastT)/1000);lastT=t;angle+=velocity*dt;draw();raf=requestAnimationFrame(tick)}
+function markerIndex(){const n=wheelNames.length,step=2*Math.PI/n;let local=((-Math.PI/2-angle)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);return Math.floor(local/step)%n}
+function draw(){const n=wheelNames.length,W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,R=W*.44;ctx.clearRect(0,0,W,H);if(n<2)return;ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);for(let i=0;i<n;i++){const a0=i*2*Math.PI/n,a1=(i+1)*2*Math.PI/n;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,R,a0,a1);ctx.closePath();ctx.fillStyle=col(i);ctx.fill();ctx.strokeStyle='#111923';ctx.lineWidth=4;ctx.stroke();ctx.save();ctx.rotate((a0+a1)/2);ctx.textAlign='right';ctx.fillStyle='#fff';ctx.font='bold 22px Arial';const txt=spinning?'• • •':wheelNames[i];ctx.shadowColor='#000';ctx.shadowBlur=5;ctx.fillText(txt,R-18,8);ctx.restore()}ctx.beginPath();ctx.arc(0,0,R,0,2*Math.PI);ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.stroke();ctx.beginPath();ctx.arc(0,0,72,0,2*Math.PI);ctx.fillStyle='#111720';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 20px Arial';ctx.fillText(spinning?'STOP':'SPIN',0,7);ctx.restore()}
+function startIdle(){clearInterval(idleTimer);idleTimer=setInterval(()=>{if(spinning||pendingWinner||mode!=='spin'||wheelNames.length<2)return;const s=1+Math.floor(Math.random()*(wheelNames.length-1));wheelNames=wheelNames.slice(s).concat(wheelNames.slice(0,s));draw();send('players',{...payload(),action:'players'})},120)}
+function stopIdle(){clearInterval(idleTimer);idleTimer=null}
+function renderInputs(){const box=document.getElementById('players');box.innerHTML='';players.forEach((name,i)=>{const row=document.createElement('div');row.className='player';const inp=document.createElement('input');inp.value=name;inp.placeholder='Player '+(i+1);inp.disabled=spinning||!!pendingWinner||mode==='complete';inp.onchange=()=>renamePlayer(i,inp.value);const b=document.createElement('button');b.textContent='×';b.title='Delete name';b.disabled=spinning||!!pendingWinner||mode==='complete';b.onclick=()=>removePlayer(i);row.append(inp,b);box.append(row)})}
+function renamePlayer(i,value){if(spinning||pendingWinner||mode==='complete')return;const old=players[i],name=(value||'').trim()||('Player '+(i+1));players[i]=name;wheelNames=wheelNames.map(x=>x===old?name:x);results=results.map(x=>x===old?name:x);renderInputs();draw();send('players',{...payload(),action:'players'})}
+function addPlayer(){if(spinning||pendingWinner||mode==='complete'){alert('Finish this round first.');return}if(players.length>=20){alert('Maximum 20 players.');return}const name='Player '+(players.length+1);players.push(name);wheelNames=[...players];renderInputs();draw();send('players',{...payload(),action:'players'});const a=document.querySelectorAll('#players input');if(a.length)a[a.length-1].focus()}
+function removePlayer(i){if(spinning||pendingWinner||mode==='complete'){alert('Finish this round first.');return}if(players.length<=2){alert('Keep at least 2 players.');return}players.splice(i,1);wheelNames=[...players];renderInputs();draw();send('players',{...payload(),action:'players'})}
 function renderResults(){resultsList.innerHTML=results.length?results.map((x,i)=>`<div>${i+1}. ${escapeHtml(x)}</div>`).join(''):'No confirmed winners yet.'}
 function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-canvas.style.touchAction='none';canvas.addEventListener('pointerdown',stopAtTouch,{passive:false});
+action.onclick=startOrNew;document.getElementById('joinRoom').onclick=connectRoom;document.getElementById('addPlayer').onclick=addPlayer;canvas.style.touchAction='none';canvas.addEventListener('pointerdown',stopAtTouch,{passive:false});
 renderInputs();renderResults();draw();startIdle();
-</script>
-</body>
-</html>
+</script></body></html>
